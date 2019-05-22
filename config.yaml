@@ -1,0 +1,18 @@
+bitbucket_url: "dummy"
+bitbucket_user: "dummy"
+bitbucket_user_email: "dummy"
+bitbucket_password: "dummy"
+github_user: "dummy"
+github_password: "dummy"
+github_token: "dummy"
+port: "8080"
+bitbucket_template_repositories:
+  - name: "GoATT Microservice"
+    project_key: "COM"
+    repository_slug: "go-goatt-template"
+    functional_domain: "Common"
+    project_name: "go-goatt-template"
+github_template_repositories:
+  - name: "dummy"
+    domain: "dummy"
+    repo_name: "dummy"

@@ -1,0 +1,6 @@
+"{{myvar}}": "mybigvar"
+"{{default_required}}": "my_default_required_override"
+"{{default_not_required}}": "my_default_not_required_override"
+"{{var_pipe}}": "my_var_PIPE"
+"{{var_pipe | upper}}": "my_var_PIPE"
+"{{var_pipe | lower}}": "my_var_PIPE"

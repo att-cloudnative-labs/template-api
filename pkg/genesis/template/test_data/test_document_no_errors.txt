@@ -1,0 +1,3 @@
+# {{title | upper}}
+
+This is a test document called {{title | lower}}. It is properly formatted, and uses different piped filters, like {{lowercase | lower}} and {{uppercase | upper}}.

@@ -1,0 +1,20 @@
+projects:
+  - name: "Test"
+    root: "base"
+    language:
+      name: "Go"
+      version: "1.12"
+    runtime:
+      names:
+        - "test"
+    options:
+      - name: "myvar"
+        required: true
+      - name: "default_required"
+        required: true
+        default: "my_default_required"
+      - name: "default_not_required"
+        required: false
+        default: "my_default_not_required"
+      - name: "var_pipe"
+        required: true

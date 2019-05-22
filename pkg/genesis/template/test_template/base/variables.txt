@@ -1,0 +1,4 @@
+default_required={{default_required}}
+default_not_required={{default_not_required}}
+var_pipe_upper={{var_pipe | upper}}
+var_pipe_lower={{var_pipe | lower}}
