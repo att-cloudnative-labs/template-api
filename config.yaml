@@ -1,10 +1,11 @@
-bitbucket_url: "dummy"
-bitbucket_user: "dummy"
-bitbucket_user_email: "dummy"
-bitbucket_password: "dummy"
-github_user: "dummy"
-github_password: "dummy"
-github_token: "dummy"
+bitbucket_url: "changeme"
+bitbucket_user: "changeme"
+bitbucket_user_email: "changeme"
+bitbucket_timeout: 1
+bitbucket_password: "changeme"
+github_user: "changeme"
+github_password: "changeme"
+github_token: "changeme"
 port: "8080"
 bitbucket_template_repositories:
   - name: "GoATT Microservice"
@@ -13,6 +14,6 @@ bitbucket_template_repositories:
     functional_domain: "Common"
     project_name: "go-goatt-template"
 github_template_repositories:
-  - name: "dummy"
-    domain: "dummy"
-    repo_name: "dummy"
+  - name: "changeme"
+    domain: "changeme"
+    repo_name: "changeme"

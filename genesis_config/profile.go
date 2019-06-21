@@ -8,14 +8,15 @@ import (
 var AuthConfig *AppConfig
 
 type AppConfig struct {
-	BitBucketURL       string `mapstructure:"bitbucket_url"`
-	BitBucketUser      string `mapstructure:"bitbucket_user"`
-	BitBucketPassword  string `mapstructure:"bitbucket_password"`
-	BitBucketAuthToken string `mapstructure:"bitbucket_token"`
-	BitBucketUserEmail string `mapstructure:"bitbucket_user_email"`
-	GitHubUser         string `mapstructure:"github_user"`
-	GitHubPassword     string `mapstructure:"github_password"`
-	GitHubToken        string `mapstructure:"github_token"`
+	BitBucketURL         string `mapstructure:"bitbucket_url"`
+	BitBucketUser        string `mapstructure:"bitbucket_user"`
+	BitBucketPassword    string `mapstructure:"bitbucket_password"`
+	BitBucketAuthToken   string `mapstructure:"bitbucket_token"`
+	BitBucketRestTimeout int    `mapstructure:"bitbucket_timeout"`
+	BitBucketUserEmail   string `mapstructure:"bitbucket_user_email"`
+	GitHubUser           string `mapstructure:"github_user"`
+	GitHubPassword       string `mapstructure:"github_password"`
+	GitHubToken          string `mapstructure:"github_token"`
 	// TODO - reconfigure to enable override with environment variables
 	GitHubTemplateRepositories    []GitHubTemplateRepository    `mapstructure:"github_template_repositories"`
 	BitBucketTemplateRepositories []BitBucketTemplateRepository `mapstructure:"bitbucket_template_repositories"`
@@ -52,6 +53,8 @@ func InitConfig() {
 	if err != nil {
 		fmt.Printf("Error reading in config. %+v\n", err)
 	}
+
+	v.SetDefault("bitbucket_timeout", 3)
 
 	err = v.Unmarshal(&AuthConfig)
 	if err != nil {
