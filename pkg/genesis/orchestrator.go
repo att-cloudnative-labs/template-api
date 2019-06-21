@@ -59,7 +59,8 @@ func (templateOrchestrator *TemplateOrchestrator) initClients(appConfig *genesis
 		appConfig.BitBucketUser,
 		appConfig.BitBucketPassword,
 		appConfig.BitBucketUserEmail,
-		appConfig.BitBucketAuthToken)
+		appConfig.BitBucketAuthToken,
+		appConfig.BitBucketRestTimeout)
 
 	if err != nil {
 		fmt.Printf("Error while initializing BitBucketClientConfig: %+v\n", err)

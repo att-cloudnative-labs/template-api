@@ -84,10 +84,11 @@ type BitBucketClientConfig struct {
 	Password            string `yaml:"password" json:"password"`
 	AccessToken         string `yaml:"access_token" json:"access_token"`
 	Email               string `yaml:"email" json:"email"`
+	RestTimeout         int    `yaml:"timeout" json:"timeout"`
 	AuthenticationToken string
 }
 
-func NewBitBucketClientConfig(gitHost, username, password, email, accessToken string) (BitBucketClientConfig, error) {
+func NewBitBucketClientConfig(gitHost, username, password, email, accessToken string, timeout int) (BitBucketClientConfig, error) {
 	if gitHost == "" {
 		return BitBucketClientConfig{}, errors.Errorf("gitHost must not be empty")
 	}
@@ -107,12 +108,17 @@ func NewBitBucketClientConfig(gitHost, username, password, email, accessToken st
 		authenticationToken = base64.StdEncoding.EncodeToString([]byte(username + ":" + accessToken))
 	}
 
+	if timeout < 0 || timeout > 10 {
+		return BitBucketClientConfig{}, errors.Errorf("timeout must be set between 1 and 10")
+	}
+
 	return BitBucketClientConfig{
 		GitHost:             gitHost,
 		Username:            username,
 		Password:            password,
 		AccessToken:         accessToken,
 		Email:               email,
+		RestTimeout:         timeout,
 		AuthenticationToken: authenticationToken,
 	}, nil
 }
@@ -161,7 +167,7 @@ func (gitClient *BitBucketClient) CreateWebhook(url string, gitConfig GitRepoCon
 func NewBitBucketClient(config *BitBucketClientConfig) BitBucketClient {
 	return BitBucketClient{
 		Config:     config,
-		RestClient: &http.Client{Timeout: time.Duration(1) * time.Second},
+		RestClient: &http.Client{Timeout: time.Duration(config.RestTimeout) * time.Second},
 	}
 }
 
