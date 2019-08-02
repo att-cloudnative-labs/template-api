@@ -27,6 +27,10 @@ type GitClient interface {
 	// Clone a remote repository. Return the path to that repository, and
 	// any errors encountered.
 	CloneRepo(gitRepoConfig GitRepoConfig) (directoryPath string, err error)
+	// Checkout a particular branch. Return any errors encountered
+	CheckoutBranch(branchName string, gitRepoConfig GitRepoConfig) (directoryPath string, err error)
+	// Checkout a particular tag. Return any errors encountered
+	CheckoutTag(tagName string, gitRepoConfig GitRepoConfig) (directoryPath string, err error)
 	// Create a new git repository. Return any errors encountered.
 	CreateNewRemoteRepo(gitRepoConfig GitRepoConfig) (fullRepoUrl string, err error)
 	// Initialize a repository for the given config

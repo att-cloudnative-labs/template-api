@@ -202,6 +202,14 @@ func (client *GitHubClient) CloneRepo(gitRepoConfig GitRepoConfig) (directoryPat
 	return directory, nil
 }
 
+func (client *GitHubClient) CheckoutBranch(branchName string, gitRepoConfig GitRepoConfig) (directoryPath string, err error) {
+	panic("implement me")
+}
+
+func (client *GitHubClient) CheckoutTag(tagName string, gitRepoConfig GitRepoConfig) (directoryPath string, err error) {
+	panic("implement me")
+}
+
 func (client *GitHubClient) RepoExists(gitRepoConfig GitRepoConfig) (exists bool, err error) {
 	apiUrl := gitRepoConfig.ConstructRestApiUrl(client.Config.GitHost)
 	apiProjectUrl := apiUrl
