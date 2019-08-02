@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	gitHttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"io/ioutil"
@@ -47,16 +48,17 @@ func (config *BitBucketRepoConfig) GetRepoDomain() string {
 	return config.ProjectKey
 }
 
-func (g *BitBucketRepoConfig) Validate() bool {
-	return g.ProjectKey != "" && g.RepositorySlug != "" && g.FunctionalDomain != "" && g.ProjectName != ""
+func (config *BitBucketRepoConfig) Validate() bool {
+	return config.ProjectKey != "" && config.RepositorySlug != "" && config.FunctionalDomain != "" && config.ProjectName != ""
 }
 
-func NewBitBucketRepoConfig(projectKey, repositorySlug, functionalDomain, projectName string) *BitBucketRepoConfig {
+func NewBitBucketRepoConfig(projectKey, repositorySlug, functionalDomain, projectName string, tags ...string) *BitBucketRepoConfig {
 	return &BitBucketRepoConfig{
 		ProjectKey:       projectKey,
 		RepositorySlug:   repositorySlug,
 		FunctionalDomain: functionalDomain,
 		ProjectName:      projectName,
+		Tags:             tags,
 	}
 }
 
@@ -349,35 +351,104 @@ func (gitClient *BitBucketClient) GetFileFromRepo(filename string, gitRepoConfig
 }
 
 func (gitClient *BitBucketClient) CloneRepo(gitRepoConfig GitRepoConfig) (directoryPath string, err error) {
-	exists, err := gitClient.RepoExists(gitRepoConfig)
+
+	directory, repoUrl, err := getTempDirectoryAndRepoUrl(gitClient, gitRepoConfig)
+
 	if err != nil {
 		return "", err
 	}
-
-	if !exists {
-		return "", ErrRepoNotExist
-	}
-	repoUrl := gitClient.CreateScmRepoUrl(gitRepoConfig)
-	randomHash := getRandomHash(10)
-
-	directory := "/tmp/" + randomHash + "/"
 
 	repo, err := git.PlainClone(directory, false, &git.CloneOptions{
 		URL:  repoUrl,
 		Auth: &gitHttp.BasicAuth{Username: gitClient.Config.Username, Password: gitClient.Config.Password},
 	})
-	if err != nil {
-		return "", errors.Wrapf(err, "something happened while cloning repo %s", repoUrl)
-	}
 
-	// TODO - is this necessary?
-	_, err = repo.Worktree()
+	err = verifyRepo(repo, err)
 
 	if err != nil {
-		return "", errors.Wrapf(err, "something happened while accessing the worktree")
+		return "", err
 	}
 
 	return directory, nil
+}
+
+func (gitClient *BitBucketClient) CheckoutBranch(branchName string, gitRepoConfig GitRepoConfig) (directoryPath string, err error) {
+
+	directory, repoUrl, err := getTempDirectoryAndRepoUrl(gitClient, gitRepoConfig)
+
+	if err != nil {
+		return "", err
+	}
+
+	repo, err := git.PlainClone(directory, false, &git.CloneOptions{
+		URL:           repoUrl,
+		ReferenceName: plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branchName)),
+		SingleBranch:  true,
+		Auth:          &gitHttp.BasicAuth{Username: gitClient.Config.Username, Password: gitClient.Config.Password},
+	})
+
+	err = verifyRepo(repo, err)
+
+	if err != nil {
+		return "", err
+	}
+
+	return directory, nil
+}
+
+func (gitClient *BitBucketClient) CheckoutTag(tagName string, gitRepoConfig GitRepoConfig) (directoryPath string, err error) {
+	directory, repoUrl, err := getTempDirectoryAndRepoUrl(gitClient, gitRepoConfig)
+
+	if err != nil {
+		return "", err
+	}
+
+	repo, err := git.PlainClone(directory, false, &git.CloneOptions{
+		URL:           repoUrl,
+		ReferenceName: plumbing.ReferenceName(fmt.Sprintf("refs/tags/%s", tagName)),
+		SingleBranch:  true,
+		Auth:          &gitHttp.BasicAuth{Username: gitClient.Config.Username, Password: gitClient.Config.Password},
+	})
+
+	err = verifyRepo(repo, err)
+
+	if err != nil {
+		return "", err
+	}
+
+	return directory, nil
+}
+
+func getTempDirectoryAndRepoUrl(gitClient *BitBucketClient, gitRepoConfig GitRepoConfig) (directoryPath, repoUrl string, err error) {
+	exists, err := gitClient.RepoExists(gitRepoConfig)
+	if err != nil {
+		return "", "", err
+	}
+
+	if !exists {
+		return "", "", ErrRepoNotExist
+	}
+	repoUrl = gitClient.CreateScmRepoUrl(gitRepoConfig)
+	randomHash := getRandomHash(10)
+
+	directoryPath = "/tmp/" + randomHash + "/"
+
+	return directoryPath, repoUrl, nil
+}
+
+func verifyRepo(repo *git.Repository, err error) error {
+
+	if err != nil {
+		return errors.Wrapf(err, "something happened while cloning repo")
+	}
+
+	_, err = repo.Worktree()
+
+	if err != nil {
+		return errors.Wrapf(err, "something happened while accessing the worktree")
+	}
+
+	return nil
 }
 
 func addFilesToGit(directoryPath string, worktree *git.Worktree) error {

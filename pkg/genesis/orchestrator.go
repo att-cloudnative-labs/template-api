@@ -158,40 +158,92 @@ func (templateOrchestrator *TemplateOrchestrator) GetTemplate(projectName, templ
 // Template and Target repositories can be from different Git Hosts (eg. Template in BitBucket and Target in GitHub)
 func (templateOrchestrator *TemplateOrchestrator) GenerateFromTemplateAndCommit(templateKey, templateName, jenkinsUrl string, optionsMap map[string]string, targetRepo git_client.GitRepoConfig, createWebhook bool) (repoUrl string, err error) {
 
-	ok := targetRepo.Validate()
-	if !ok {
-		return "", errors.Errorf("target repository configuration is invalid")
-	}
+	targetGitClient, templateGitClient, templateRepoConfig, err := templateOrchestrator.getTargetClient(templateKey, targetRepo)
 
-	templateRepoConfig := templateOrchestrator.RemoteTemplateMap[templateKey]
-
-	if templateRepoConfig == nil {
-		return "", errors.Errorf("the template name [%s] is invalid", templateKey)
-	}
-
-	ok = templateRepoConfig.Validate()
-
-	if !ok {
-		return "", errors.Errorf("template repository configuration is invalid")
-	}
-
-	templateGitClientName, err := templateOrchestrator.getGitClient(templateRepoConfig)
 	if err != nil {
 		return "", err
 	}
-	templateGitClient := templateOrchestrator.GitClientMap[templateGitClientName]
-
-	targetGitClientName, err := templateOrchestrator.getGitClient(targetRepo)
-	if err != nil {
-		return "", err
-	}
-	targetGitClient := templateOrchestrator.GitClientMap[targetGitClientName]
 
 	dirName, err := templateGitClient.CloneRepo(templateRepoConfig)
 
 	if err != nil {
 		return "", err
 	}
+
+	return templateOrchestrator.processTemplate(dirName, templateName, jenkinsUrl, optionsMap, targetGitClient, targetRepo, createWebhook)
+}
+
+// Orchestrate a repository clone for a specific branch
+func (templateOrchestrator *TemplateOrchestrator) GenerateFromTemplateBranchAndCommit(templateKey, templateName, branchName, jenkinsUrl string, optionsMap map[string]string, targetRepo git_client.GitRepoConfig, createWebhook bool) (repoUrl string, err error) {
+
+	targetGitClient, templateGitClient, templateRepoConfig, err := templateOrchestrator.getTargetClient(templateKey, targetRepo)
+
+	if err != nil {
+		return "", err
+	}
+
+	dirName, err := templateGitClient.CheckoutBranch(branchName, templateRepoConfig)
+
+	if err != nil {
+		return "", err
+	}
+
+	return templateOrchestrator.processTemplate(dirName, templateName, jenkinsUrl, optionsMap, targetGitClient, targetRepo, createWebhook)
+}
+
+// Orchestrate a repository clone for a specific tag
+func (templateOrchestrator *TemplateOrchestrator) GenerateFromTemplateTagAndCommit(templateKey, templateName, tagName, jenkinsUrl string, optionsMap map[string]string, targetRepo git_client.GitRepoConfig, createWebhook bool) (repoUrl string, err error) {
+
+	targetGitClient, templateGitClient, templateRepoConfig, err := templateOrchestrator.getTargetClient(templateKey, targetRepo)
+
+	if err != nil {
+		return "", err
+	}
+
+	dirName, err := templateGitClient.CheckoutTag(tagName, templateRepoConfig)
+
+	if err != nil {
+		return "", err
+	}
+
+	return templateOrchestrator.processTemplate(dirName, templateName, jenkinsUrl, optionsMap, targetGitClient, targetRepo, createWebhook)
+}
+
+func (templateOrchestrator *TemplateOrchestrator) getTargetClient(templateKey string, targetRepo git_client.GitRepoConfig) (targetGitClient git_client.GitClient, templateGitClient git_client.GitClient, templateRepoConfig git_client.GitRepoConfig, err error) {
+
+	ok := targetRepo.Validate()
+	if !ok {
+		return &git_client.BitBucketClient{}, &git_client.BitBucketClient{}, &git_client.BitBucketRepoConfig{}, errors.Errorf("target repository configuration is invalid")
+	}
+
+	templateRepoConfig = templateOrchestrator.RemoteTemplateMap[templateKey]
+
+	if templateRepoConfig == nil {
+		return &git_client.BitBucketClient{}, &git_client.BitBucketClient{}, &git_client.BitBucketRepoConfig{}, errors.Errorf("the template name [%s] is invalid", templateKey)
+	}
+
+	ok = templateRepoConfig.Validate()
+
+	if !ok {
+		return &git_client.BitBucketClient{}, &git_client.BitBucketClient{}, &git_client.BitBucketRepoConfig{}, errors.Errorf("template repository configuration is invalid")
+	}
+
+	templateGitClientName, err := templateOrchestrator.getGitClient(templateRepoConfig)
+	if err != nil {
+		return &git_client.BitBucketClient{}, &git_client.BitBucketClient{}, &git_client.BitBucketRepoConfig{}, err
+	}
+	templateGitClient = templateOrchestrator.GitClientMap[templateGitClientName]
+
+	targetGitClientName, err := templateOrchestrator.getGitClient(targetRepo)
+	if err != nil {
+		return &git_client.BitBucketClient{}, &git_client.BitBucketClient{}, &git_client.BitBucketRepoConfig{}, err
+	}
+	targetGitClient = templateOrchestrator.GitClientMap[targetGitClientName]
+
+	return targetGitClient, templateGitClient, templateRepoConfig, nil
+}
+
+func (templateOrchestrator *TemplateOrchestrator) processTemplate(dirName, templateName, jenkinsUrl string, optionsMap map[string]string, targetGitClient git_client.GitClient, targetRepo git_client.GitRepoConfig, createWebhook bool) (repoUrl string, err error) {
 
 	genesisTemplateApi := template.NewGenesisTemplateApi(dirName)
 
