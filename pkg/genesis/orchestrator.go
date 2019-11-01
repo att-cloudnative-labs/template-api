@@ -154,6 +154,12 @@ func (templateOrchestrator *TemplateOrchestrator) GetTemplate(projectName, templ
 	return projectTemplate, nil
 }
 
+func (templateOrchestrator *TemplateOrchestrator) GetListOfRepositoriesForProject(projectKey string) ([]string, error) {
+	gitClient := templateOrchestrator.GitClientMap[bitbucket]
+
+	return gitClient.ListAllReposForProjectKey(projectKey)
+}
+
 // Pulls a template repository, performs variable replacement, and commits new project to targetRepo
 // Template and Target repositories can be from different Git Hosts (eg. Template in BitBucket and Target in GitHub)
 func (templateOrchestrator *TemplateOrchestrator) GenerateFromTemplateAndCommit(templateKey, templateName, jenkinsUrl string, optionsMap map[string]string, targetRepo git_client.GitRepoConfig, createWebhook bool) (repoUrl string, err error) {

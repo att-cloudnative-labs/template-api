@@ -104,6 +104,10 @@ func NewGitHubClient(config *GitHubClientConfig) GitHubClient {
 	}
 }
 
+func (client *GitHubClient) ListAllReposForProjectKey(projectKey string) ([]string, error) {
+	panic("implement me")
+}
+
 func (client *GitHubClient) GetFileFromRepo(filename string, gitRepoConfig GitRepoConfig) (file *os.File, err error) {
 	panic("implement me")
 }

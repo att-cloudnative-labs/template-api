@@ -130,6 +130,42 @@ type BitBucketClient struct {
 	RestClient *http.Client
 }
 
+// https://{host}/rest/api/1.0/projects/{projectKey}/repos?limit=1000
+func (gitClient *BitBucketClient) ListAllReposForProjectKey(projectKey string) ([]string, error) {
+	url := "https://" + gitClient.Config.GitHost + "/rest/api/1.0/projects/" + projectKey + "/repos?limit=1000"
+
+	request, _ := http.NewRequest("GET", url, nil)
+	request.Header.Set("Authorization", "Basic "+gitClient.Config.AuthenticationToken)
+	request.Header.Set("Content-Type", "application/json")
+
+	response, err := gitClient.RestClient.Do(request)
+
+	if response != nil {
+		defer func() {
+			if err := response.Body.Close(); err != nil {
+				fmt.Printf("error closing response body %+v\n", err)
+			}
+		}()
+	}
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "Problem performing request to BitBucket REST API for retrieving repos in project: %s", projectKey)
+	}
+	var bitBucketResponse BitBucketRepoResponse
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Problem reading result body")
+	}
+
+	err = json.Unmarshal(body, &bitBucketResponse)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Problem unmarshalling body")
+	}
+
+	return bitBucketResponse.GetRepositoryNames(), nil
+}
+
 func (gitClient *BitBucketClient) CreateWebhook(url string, gitConfig GitRepoConfig) error {
 	webhookUrl := "https://" + gitClient.Config.GitHost + "/rest/webhook/1.0/projects/" + gitConfig.GetRepoDomain() + "/repos/" + gitConfig.GetRepoName() + "/configurations"
 	payload := BitBucketWebHookRequest{

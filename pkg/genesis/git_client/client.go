@@ -18,29 +18,31 @@ var (
 
 // Interface defines behavior that a Git Client must expose
 type GitClient interface {
-	// Returns true if the repository exists, and false otherwise,
+	// RepoExists Returns true if the repository exists, and false otherwise,
 	// as well as any error encountered.
 	RepoExists(gitRepoConfig GitRepoConfig) (exists bool, err error)
-	// Read a single file from a git repository. Return a pointer to the file,
+	// GetFileFromRepo Reads a single file from a git repository. Return a pointer to the file,
 	// and any errors encountered.
 	GetFileFromRepo(filename string, gitRepoConfig GitRepoConfig) (file *os.File, err error)
-	// Clone a remote repository. Return the path to that repository, and
+	// CloneRepo Clones a remote repository. Return the path to that repository, and
 	// any errors encountered.
 	CloneRepo(gitRepoConfig GitRepoConfig) (directoryPath string, err error)
-	// Checkout a particular branch. Return any errors encountered
+	// CheckoutBranch Checks out a particular branch. Return any errors encountered
 	CheckoutBranch(branchName string, gitRepoConfig GitRepoConfig) (directoryPath string, err error)
-	// Checkout a particular tag. Return any errors encountered
+	// CheckoutTag Checks out a particular tag. Return any errors encountered
 	CheckoutTag(tagName string, gitRepoConfig GitRepoConfig) (directoryPath string, err error)
-	// Create a new git repository. Return any errors encountered.
+	// CreateNewRemoteRepo Creates a new git repository. Return any errors encountered.
 	CreateNewRemoteRepo(gitRepoConfig GitRepoConfig) (fullRepoUrl string, err error)
-	// Initialize a repository for the given config
+	// InitRepo Initializes a repository for the given config
 	InitRepo(gitRepoConfig GitRepoConfig) (directory string, err error)
-	// Commit a project to new repo with an initialize commit message.
+	// InitialCommitProjectToRepo Commits a project to new repo with an initialize commit message.
 	InitialCommitProjectToRepo(baseDirectory string, gitRepoConfig GitRepoConfig) (err error)
-	// Construct a URL suitable for pushing git commits to
+	// CreateScmRepoUrl Constructs a URL suitable for pushing git commits to
 	CreateScmRepoUrl(config GitRepoConfig) string
-	// Add a webhook
+	// CreateWebhook Adds a webhook
 	CreateWebhook(url string, gitConfig GitRepoConfig) error
+	// ListAllReposForProjectKey queries the BitBucket REST API to retrieve a list of repository names, or an error
+	ListAllReposForProjectKey(projectKey string) ([]string, error)
 }
 
 // Defines behavior for a set of git repo configuration
