@@ -36,6 +36,7 @@ var (
 	templateProjectName         string
 	templateProjectTemplateName string
 	templateRepoJenkinsUrl      string
+	userID                      string
 	templateRepoCreateWebhook   bool
 )
 
@@ -68,7 +69,7 @@ func Orchestrator(cmd *cobra.Command, args []string) {
 
 	targetRepo := git_client.NewBitBucketRepoConfig(targetRepoProjectKey, targetRepoSlug, targetRepoFunctionalDomain, targetRepoProjectName)
 
-	repoUrl, err := orchestrator.GenerateFromTemplateAndCommit(templateProjectName, templateProjectTemplateName, templateRepoJenkinsUrl, optionsMap, targetRepo, templateRepoCreateWebhook)
+	repoUrl, err := orchestrator.GenerateFromTemplateAndCommit(userID, templateProjectName, templateProjectTemplateName, templateRepoJenkinsUrl, optionsMap, targetRepo, templateRepoCreateWebhook)
 
 	if err != nil {
 		fmt.Printf("error occurred: %+v\n", err)
@@ -92,6 +93,7 @@ func init() {
 	rootCmd.Flags().StringVar(&templateProjectTemplateName, "templateName", "", "The name of the Template to generate")
 	rootCmd.Flags().StringVar(&templateRepoJenkinsUrl, "templateRepoJenkinsUrl", "", "The Jenkins URL for webhook configuration")
 	rootCmd.Flags().BoolVar(&templateRepoCreateWebhook, "templateRepoCreateWebhook", false, "Flag to generate webhook or not")
+	rootCmd.Flags().StringVar(&userID, "userID", "", "The user ID of the person creating a project")
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.

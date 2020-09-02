@@ -1,12 +1,9 @@
 module github.com/att-cloudnative-labs/template-api
 
-go 1.12
+go 1.14
 
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
-	github.com/go-chi/chi v4.0.2+incompatible
-	github.com/go-chi/cors v1.0.0
-	github.com/go-chi/render v1.0.1
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.8.0

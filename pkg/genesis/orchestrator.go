@@ -162,7 +162,7 @@ func (templateOrchestrator *TemplateOrchestrator) GetListOfRepositoriesForProjec
 
 // Pulls a template repository, performs variable replacement, and commits new project to targetRepo
 // Template and Target repositories can be from different Git Hosts (eg. Template in BitBucket and Target in GitHub)
-func (templateOrchestrator *TemplateOrchestrator) GenerateFromTemplateAndCommit(templateKey, templateName, jenkinsUrl string, optionsMap map[string]string, targetRepo git_client.GitRepoConfig, createWebhook bool) (repoUrl string, err error) {
+func (templateOrchestrator *TemplateOrchestrator) GenerateFromTemplateAndCommit(userID, templateKey, templateName, jenkinsUrl string, optionsMap map[string]string, targetRepo git_client.GitRepoConfig, createWebhook bool) (repoUrl string, err error) {
 
 	targetGitClient, templateGitClient, templateRepoConfig, err := templateOrchestrator.getTargetClient(templateKey, targetRepo)
 
@@ -176,11 +176,11 @@ func (templateOrchestrator *TemplateOrchestrator) GenerateFromTemplateAndCommit(
 		return "", err
 	}
 
-	return templateOrchestrator.processTemplate(dirName, templateName, jenkinsUrl, optionsMap, targetGitClient, targetRepo, createWebhook)
+	return templateOrchestrator.processTemplate(userID, dirName, templateName, jenkinsUrl, optionsMap, targetGitClient, targetRepo, createWebhook)
 }
 
 // Orchestrate a repository clone for a specific branch
-func (templateOrchestrator *TemplateOrchestrator) GenerateFromTemplateBranchAndCommit(templateKey, templateName, branchName, jenkinsUrl string, optionsMap map[string]string, targetRepo git_client.GitRepoConfig, createWebhook bool) (repoUrl string, err error) {
+func (templateOrchestrator *TemplateOrchestrator) GenerateFromTemplateBranchAndCommit(userID, templateKey, templateName, branchName, jenkinsUrl string, optionsMap map[string]string, targetRepo git_client.GitRepoConfig, createWebhook bool) (repoUrl string, err error) {
 
 	targetGitClient, templateGitClient, templateRepoConfig, err := templateOrchestrator.getTargetClient(templateKey, targetRepo)
 
@@ -194,11 +194,11 @@ func (templateOrchestrator *TemplateOrchestrator) GenerateFromTemplateBranchAndC
 		return "", err
 	}
 
-	return templateOrchestrator.processTemplate(dirName, templateName, jenkinsUrl, optionsMap, targetGitClient, targetRepo, createWebhook)
+	return templateOrchestrator.processTemplate(userID, dirName, templateName, jenkinsUrl, optionsMap, targetGitClient, targetRepo, createWebhook)
 }
 
 // Orchestrate a repository clone for a specific tag
-func (templateOrchestrator *TemplateOrchestrator) GenerateFromTemplateTagAndCommit(templateKey, templateName, tagName, jenkinsUrl string, optionsMap map[string]string, targetRepo git_client.GitRepoConfig, createWebhook bool) (repoUrl string, err error) {
+func (templateOrchestrator *TemplateOrchestrator) GenerateFromTemplateTagAndCommit(userID, templateKey, templateName, tagName, jenkinsUrl string, optionsMap map[string]string, targetRepo git_client.GitRepoConfig, createWebhook bool) (repoUrl string, err error) {
 
 	targetGitClient, templateGitClient, templateRepoConfig, err := templateOrchestrator.getTargetClient(templateKey, targetRepo)
 
@@ -212,7 +212,7 @@ func (templateOrchestrator *TemplateOrchestrator) GenerateFromTemplateTagAndComm
 		return "", err
 	}
 
-	return templateOrchestrator.processTemplate(dirName, templateName, jenkinsUrl, optionsMap, targetGitClient, targetRepo, createWebhook)
+	return templateOrchestrator.processTemplate(userID, dirName, templateName, jenkinsUrl, optionsMap, targetGitClient, targetRepo, createWebhook)
 }
 
 func (templateOrchestrator *TemplateOrchestrator) getTargetClient(templateKey string, targetRepo git_client.GitRepoConfig) (targetGitClient git_client.GitClient, templateGitClient git_client.GitClient, templateRepoConfig git_client.GitRepoConfig, err error) {
@@ -249,7 +249,7 @@ func (templateOrchestrator *TemplateOrchestrator) getTargetClient(templateKey st
 	return targetGitClient, templateGitClient, templateRepoConfig, nil
 }
 
-func (templateOrchestrator *TemplateOrchestrator) processTemplate(dirName, templateName, jenkinsUrl string, optionsMap map[string]string, targetGitClient git_client.GitClient, targetRepo git_client.GitRepoConfig, createWebhook bool) (repoUrl string, err error) {
+func (templateOrchestrator *TemplateOrchestrator) processTemplate(userID, dirName, templateName, jenkinsUrl string, optionsMap map[string]string, targetGitClient git_client.GitClient, targetRepo git_client.GitRepoConfig, createWebhook bool) (repoUrl string, err error) {
 
 	genesisTemplateApi := template.NewGenesisTemplateApi(dirName)
 
@@ -274,6 +274,12 @@ func (templateOrchestrator *TemplateOrchestrator) processTemplate(dirName, templ
 	repoUrl, err = targetGitClient.CreateNewRemoteRepo(targetRepo)
 	if err != nil {
 		return "", err
+	}
+
+	err = targetGitClient.AddAdminRights(userID, targetRepo)
+
+	if err != nil {
+		fmt.Printf("failed to add admin rights, but moving on. Err: %+v", err)
 	}
 
 	err = targetGitClient.InitialCommitProjectToRepo(dirName+"/"+root, targetRepo)

@@ -43,6 +43,8 @@ type GitClient interface {
 	CreateWebhook(url string, gitConfig GitRepoConfig) error
 	// ListAllReposForProjectKey queries the BitBucket REST API to retrieve a list of repository names, or an error
 	ListAllReposForProjectKey(projectKey string) ([]string, error)
+	// AddAdminRights adds the given userID to the list of admins for a repository
+	AddAdminRights(userID string, gitRepoConfig GitRepoConfig) error
 }
 
 // Defines behavior for a set of git repo configuration

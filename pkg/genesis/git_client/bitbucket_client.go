@@ -30,6 +30,7 @@ type BitBucketWebHookRequest struct {
 	CommittersToIgnore string `json:"committersToIgnore"`
 	BranchesToIgnore   string `json:"branchesToIgnore"`
 	Enabled            bool   `json:"enabled"`
+	TagCreated         bool   `json:"tagCreated"`
 }
 
 // REST API URL:
@@ -110,8 +111,8 @@ func NewBitBucketClientConfig(gitHost, username, password, email, accessToken st
 		authenticationToken = base64.StdEncoding.EncodeToString([]byte(username + ":" + accessToken))
 	}
 
-	if timeout < 0 || timeout > 10 {
-		return BitBucketClientConfig{}, errors.Errorf("timeout must be set between 1 and 10")
+	if timeout < 0 || timeout > 15 {
+		return BitBucketClientConfig{}, errors.Errorf("timeout must be set between 1 and 15")
 	}
 
 	return BitBucketClientConfig{
@@ -174,6 +175,7 @@ func (gitClient *BitBucketClient) CreateWebhook(url string, gitConfig GitRepoCon
 		CommittersToIgnore: "",
 		BranchesToIgnore:   "",
 		Enabled:            true,
+		TagCreated:         true,
 	}
 	jsonValue, err := json.Marshal(payload)
 
@@ -453,6 +455,40 @@ func (gitClient *BitBucketClient) CheckoutTag(tagName string, gitRepoConfig GitR
 	}
 
 	return directory, nil
+}
+
+func (gitClient *BitBucketClient) AddAdminRights(userID string, gitRepoConfig GitRepoConfig) error {
+	apiUrl := gitRepoConfig.ConstructRestApiUrl(gitClient.Config.GitHost)
+	apiPermissionsUrl := fmt.Sprintf("%s/%s/permissions/users", apiUrl, gitRepoConfig.GetRepoName())
+
+	request, _ := http.NewRequest("PUT", apiPermissionsUrl, bytes.NewBuffer([]byte("")))
+	request.Header.Set("Authorization", "Basic "+gitClient.Config.AuthenticationToken)
+	q := request.URL.Query()
+	q.Add("name", userID)
+	q.Add("permission", "REPO_ADMIN")
+
+	request.URL.RawQuery = q.Encode()
+
+	response, err := gitClient.RestClient.Do(request)
+
+	if response != nil {
+		defer func() {
+			if err := response.Body.Close(); err != nil {
+				fmt.Printf("error closing response body %+v\n", err)
+			}
+		}()
+	}
+
+	if err != nil {
+		return errors.Wrapf(err, "unable to apply admin rights for user %s", userID)
+	}
+
+	code := response.StatusCode
+
+	if code != http.StatusOK && code != http.StatusNoContent {
+		return errors.New("there was a problem granting admin rights for user " + userID)
+	}
+	return nil
 }
 
 func getTempDirectoryAndRepoUrl(gitClient *BitBucketClient, gitRepoConfig GitRepoConfig) (directoryPath, repoUrl string, err error) {

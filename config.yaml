@@ -1,7 +1,7 @@
 bitbucket_url: "changeme"
 bitbucket_user: "changeme"
 bitbucket_user_email: "changeme"
-bitbucket_timeout: 1
+bitbucket_timeout: 15
 bitbucket_password: "changeme"
 github_user: "changeme"
 github_password: "changeme"

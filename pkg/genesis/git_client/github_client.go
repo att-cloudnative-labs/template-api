@@ -249,3 +249,7 @@ func (client *GitHubClient) RepoExists(gitRepoConfig GitRepoConfig) (exists bool
 func (client *GitHubClient) CreateWebhook(url string, gitConfig GitRepoConfig) error {
 	panic("implement me")
 }
+
+func (client *GitHubClient) AddAdminRights(userID string, gitRepoConfig GitRepoConfig) error {
+	panic("implement me")
+}
