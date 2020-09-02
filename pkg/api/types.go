@@ -23,6 +23,7 @@ type Option struct {
 }
 
 type GenesisPayload struct {
+	UserID        string        `json:"userID"`
 	ProjectName   string        `json:"projectName"`
 	TemplateName  string        `json:"templateName"`
 	Options       []Option      `json:"options"`
