@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/att-cloudnative-labs/template-api/cmd"
+import cmd "github.com/att-cloudnative-labs/template-api/cmd/genesis"
 
 // main method for Cobra CLI
 func main() {
