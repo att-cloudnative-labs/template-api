@@ -60,7 +60,6 @@ func copyFile(source string, destination string) error {
 
 // copyProject Copies the .genesis.yml file and all the base folder to target
 func copyProject(target string) error {
-	var dirMode os.FileMode = 700
 	sep := string(os.PathSeparator)
 	files := []string{".genesis.yml"}
 	for _, file := range files {
@@ -70,7 +69,7 @@ func copyProject(target string) error {
 		}
 	}
 	templateFolder := "base"
-	err := os.Mkdir(fmt.Sprintf("%s%s%s", target, sep, templateFolder), dirMode)
+	err := os.Mkdir(fmt.Sprintf("%s%s%s", target, sep, templateFolder), 0700)
 	if err != nil {
 		return err
 	}
@@ -79,7 +78,7 @@ func copyProject(target string) error {
 	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		stripped := target + sep + templateFolder + strings.Replace(path, root, "", -1)
 		if info.IsDir() {
-			err = os.MkdirAll(stripped, dirMode)
+			err = os.MkdirAll(stripped, 0700)
 			if err != nil {
 				return err
 			}
