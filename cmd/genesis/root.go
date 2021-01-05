@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package genesis
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/att-cloudnative-labs/template-api/genesis_config"
 	"github.com/att-cloudnative-labs/template-api/pkg/genesis"
 	"github.com/att-cloudnative-labs/template-api/pkg/genesis/git_client"
-	"os"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
